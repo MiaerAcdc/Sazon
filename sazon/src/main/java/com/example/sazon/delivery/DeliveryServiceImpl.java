@@ -31,7 +31,6 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         delivery.setFecha(LocalDateTime.now());
 
-        // ⭐ Corregido: El estado inicial ahora es "Recibido"
         delivery.setEstado("Recibido");
 
         delivery.setTipo("Delivery");
@@ -84,21 +83,31 @@ public class DeliveryServiceImpl implements DeliveryService {
             throw new IllegalArgumentException("Delivery no encontrado.");
         }
 
-        // Convertir estados a enum usando la lógica de Delivery.java para la validación
+        // --- INICIO DE CORRECCIÓN DE GESTIÓN DE ESTADOS ---
+
         Delivery.DeliveryStatus currentStatus;
         Delivery.DeliveryStatus nextStatus;
 
+        // 1. Convertir el estado ACTUAL (desde la DB)
         try {
             currentStatus = Delivery.DeliveryStatus.fromString(delivery.getEstado());
-            nextStatus = Delivery.DeliveryStatus.fromString(nuevoEstado);
         } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Estado inválido proporcionado o guardado: " + ex.getMessage());
+            throw new IllegalArgumentException("El estado actual del Delivery guardado ('" + delivery.getEstado() + "') no es válido.");
         }
 
-        // ⭐ Lógica de validación de transición usando el enum
+        // 2. Convertir el estado NUEVO (desde el JSP)
+        try {
+            nextStatus = Delivery.DeliveryStatus.fromString(nuevoEstado);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("El nuevo estado proporcionado ('" + nuevoEstado + "') no es válido.");
+        }
+
+        // 3. Lógica de validación de transición usando el enum
         if (!Delivery.DeliveryStatus.canTransitionTo(currentStatus, nextStatus)) {
             throw new IllegalArgumentException("Transición no permitida: de '" + delivery.getEstado() + "' a '" + nuevoEstado + "'. Solo se permite avanzar al siguiente paso o Cancelar.");
         }
+
+        // --- FIN DE CORRECCIÓN DE GESTIÓN DE ESTADOS ---
 
         delivery.setEstado(nuevoEstado);
         deliveryDAO.actualizarEstado(deliveryId, nuevoEstado);
