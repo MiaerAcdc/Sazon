@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Controller
 @RequestMapping("/delivery")
@@ -77,11 +78,9 @@ public class DeliveryController {
                     String platilloId = platilloIdsStr[i];
                     String cantidad = cantidadesStr[i];
 
-                    // Convertir la cadena vacía ("") a 0 para evitar NumberFormatException
                     int pId = platilloId.isEmpty() ? 0 : Integer.parseInt(platilloId);
                     int cant = cantidad.isEmpty() ? 0 : Integer.parseInt(cantidad);
 
-                    // Solo incluir si ambos valores son válidos (mayores a 0)
                     if (pId > 0 && cant > 0) {
                         validPlatilloIds.add(pId);
                         validCantidades.add(cant);
@@ -116,9 +115,10 @@ public class DeliveryController {
         }
     }
 
-    @PostMapping("/actualizar-estado/{id}/{nuevoEstado}")
+    // ⭐ MÉTODO CORREGIDO: Mapeo ajustado para coincidir con el formulario POST
+    @PostMapping("/actualizar-estado/{id}") // <--- Quitamos {nuevoEstado} de la URL
     public String actualizarEstado(@PathVariable int id,
-                                   @PathVariable String nuevoEstado,
+                                   @RequestParam String nuevoEstado, // <--- Recibimos el estado como RequestParam
                                    RedirectAttributes redirectAttributes) {
         try {
             deliveryService.actualizarEstadoDelivery(id, nuevoEstado);
