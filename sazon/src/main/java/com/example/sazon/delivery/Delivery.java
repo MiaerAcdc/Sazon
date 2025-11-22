@@ -8,7 +8,7 @@ public class Delivery {
     private LocalDateTime fecha;
     private String metodoPago;
     private String tipo;
-    private String estado; // Almacena el nombre del estado (String)
+    private String estado;
 
     private String nombreCliente;
     private String direccionCliente;
@@ -30,13 +30,12 @@ public class Delivery {
         this.referencia = referencia;
     }
 
-    // Enumeración para manejar los estados del Delivery
     public enum DeliveryStatus {
         RECIBIDO(1),
         EN_PREPARACION(2),
         EN_CAMINO(3),
         COMPLETADO(4),
-        CANCELADO(5); // Manejado como un estado final, fuera de la secuencia normal de avance
+        CANCELADO(5);
 
         private final int sequence;
 
@@ -48,22 +47,32 @@ public class Delivery {
             return sequence;
         }
 
-        // Método estático para obtener el estado a partir de su nombre (String)
         public static DeliveryStatus fromString(String status) {
-            return DeliveryStatus.valueOf(status.toUpperCase().replace(" ", "_"));
+            String normalizedStatus = status.toUpperCase().replace(" ", "_");
+
+            if ("PENDIENTE".equals(normalizedStatus)) {
+                return RECIBIDO;
+            }
+
+            if ("ENTREGADO".equals(normalizedStatus) || "ENTREGA".equals(normalizedStatus)) {
+                return COMPLETADO;
+            }
+
+            // Corrección: Asegurarse de que no haya problemas con acentos no estándar
+            normalizedStatus = normalizedStatus.replace("ACION", "ACION");
+
+            return DeliveryStatus.valueOf(normalizedStatus);
         }
 
-        // Lógica de validación de transición: No permite retroceder y solo permite avanzar al siguiente paso o cancelar
         public static boolean canTransitionTo(DeliveryStatus current, DeliveryStatus next) {
             if (current == COMPLETADO || current == CANCELADO) {
-                return false; // No se puede cambiar el estado de un pedido completado o cancelado
+                return false;
             }
 
             if (next == CANCELADO) {
-                return true; // Se permite cancelar desde cualquier estado intermedio
+                return true;
             }
 
-            // Permite avanzar solo al estado inmediatamente siguiente
             return next.sequence == (current.sequence + 1);
         }
     }
