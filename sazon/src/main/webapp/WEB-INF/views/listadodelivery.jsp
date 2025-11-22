@@ -54,7 +54,8 @@
         </thead>
 
         <tbody>
-        <c:set var="secuenciaEstados" value="${['Recibido', 'En preparación', 'En camino', 'Completado']}" />
+        <%-- Definimos la secuencia de estados sin tilde para evitar errores de codificación en el Enum --%>
+        <c:set var="secuenciaEstados" value="${['Recibido', 'En preparacion', 'En camino', 'Completado']}" />
 
         <c:forEach var="d" items="${deliveries}">
             <tr>
@@ -65,28 +66,38 @@
 
                 <td>
                     <c:set var="currentStatus" value="${d.estado}" />
-                    <c:set var="isFinal" value="${currentStatus == 'Completado' || currentStatus == 'Cancelado'}" />
+                    <c:set var="isFinal" value="${currentStatus == 'Completado' || currentStatus == 'Cancelado' || currentStatus == 'Entregado'}" />
 
                     <form action="${pageContext.request.contextPath}/delivery/actualizar-estado/${d.id}" method="post" class="no-style">
-                        <select name="nuevoEstado" required style="width: 150px; padding: 5px;">
+                        <select name="nuevoEstado" required style="width: 150px; padding: 5px;"
+                                <c:if test="${isFinal}">disabled</c:if> >
 
                             <option value="${currentStatus}" selected disabled>${currentStatus}</option>
 
                             <c:if test="${!isFinal}">
-                                <c:set var="nextStateFound" value="${false}" />
+                                <c:set var="nextState" value="" />
 
+                                <%-- 1. Buscar el siguiente estado secuencial permitido --%>
                                 <c:forEach var="state" items="${secuenciaEstados}" varStatus="loop">
                                     <c:if test="${loop.index > 0}">
-                                        <c:if test="${secuenciaEstados[loop.index - 1] == currentStatus && !nextStateFound}">
-                                            <option value="${state}">${state}</option>
-                                            <c:set var="nextStateFound" value="${true}" />
+                                        <c:if test="${secuenciaEstados[loop.index - 1] == currentStatus}">
+                                            <c:set var="nextState" value="${state}" />
                                         </c:if>
                                     </c:if>
                                 </c:forEach>
 
-                                <c:if test="${currentStatus != 'Cancelado'}">
-                                    <option value="Cancelado">Cancelado</option>
+                                <%-- También mapeamos el estado antiguo 'Pendiente' a 'Recibido' --%>
+                                <c:if test="${currentStatus == 'Pendiente'}">
+                                    <%-- Usar 'En preparacion' sin tilde --%>
+                                    <c:set var="nextState" value="En preparacion" />
                                 </c:if>
+
+                                <c:if test="${not empty nextState}">
+                                    <option value="${nextState}">${nextState}</option>
+                                </c:if>
+
+                                <%-- 2. Opción Cancelado: Si no está en un estado final (Completado/Cancelado) --%>
+                                <option value="Cancelado">Cancelado</option>
                             </c:if>
                         </select>
 
