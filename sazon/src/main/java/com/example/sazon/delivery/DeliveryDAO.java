@@ -21,7 +21,6 @@ public interface DeliveryDAO {
 
     void actualizarDelivery(Delivery delivery);
 
-    // ⭐ Método añadido para actualizar solo el estado
     void actualizarEstado(int id, String nuevoEstado);
 
     void eliminarDetallesPorDelivery(int deliveryId);
