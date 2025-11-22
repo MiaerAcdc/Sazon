@@ -135,3 +135,4 @@ public class DeliveryRepository implements DeliveryDAO {
         jdbcTemplate.update("DELETE FROM Venta WHERE Id = ?", id);
     }
 }
+
