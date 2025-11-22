@@ -117,6 +117,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <mainClass>com.example.sazon.SazonApplication</mainClass>
                     <finalName>sazon</finalName>
                     <excludeDevtools>false</excludeDevtools>
                 </configuration>
